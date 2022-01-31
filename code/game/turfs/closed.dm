@@ -5,14 +5,18 @@
 	density = TRUE
 	opacity = TRUE
 
-
-
-
+///Base state, for icon_state updates.
+	var/walltype
+	///The neighbours
+	var/junctiontype = NONE
 
 /turf/closed/mineral
 	name = "rock"
-	icon = 'icons/turf/walls.dmi'
-	icon_state = "rock"
+	icon = 'icons/turf/ground_map.dmi'
+	icon_state = "lvwall-0-0-0-0"
+	walltype = "lvwall"
+	smoothing_behavior = DIAGONAL_SMOOTHING
+	smoothing_groups = SMOOTH_MINERAL_STRUCTURES
 
 /turf/closed/mineral/Initialize(mapload)
 	. = ..()
@@ -33,15 +37,27 @@
 
 /turf/closed/mineral/bigred
 	name = "rock"
+	icon = 'icons/turf/walls.dmi'
 	icon_state = "redrock"
+	smoothing_behavior = NO_SMOOTHING //big red does not currently have its own 3/4ths cave tileset, so it uses the old one without smoothing
+	smoothing_groups = NONE
 
+/turf/closed/mineral/indestructible/mineral
+	name = "impenetrable rock"
+	icon_state = "lvwall-0-0-0-0"
+	walltype = "lvwall"
+	smoothing_behavior = DIAGONAL_SMOOTHING
+	smoothing_groups = SMOOTH_MINERAL_STRUCTURES
+	resistance_flags = RESIST_ALL
 
 //Ground map dense jungle
 /turf/closed/gm
-	name = "dense jungle"
-	icon = 'icons/turf/ground_map.dmi'
-	icon_state = "wall2"
+	icon = 'icons/turf/walls/jungle.dmi'
+	icon_state = "jungle-0-0-0-0"
 	desc = "Some thick jungle."
+	smoothing_behavior = DIAGONAL_SMOOTHING
+	smoothing_groups = SMOOTH_FLORA
+	walltype = "jungle"
 
 /turf/closed/gm/tree
 	name = "dense jungle trees"
@@ -58,24 +74,16 @@
 
 /turf/closed/gm/dense
 	name = "dense jungle wall"
-	icon = 'icons/turf/ground_map.dmi'
-	icon_state = "wall2"
-
-/turf/closed/gm/dense/Initialize()
-	. = ..()
-	if(rand(0,15) == 0)
-		icon_state = "wall1"
-	else if (rand(0,20) == 0)
-		icon_state = "wall3"
-	else
-		icon_state = "wall2"
-
-
+	
 //desertdam rock
 /turf/closed/desertdamrockwall
 	name = "rockwall"
-	icon = 'icons/turf/desertdam_map.dmi'
-	icon_state = "cavewall1"
+	icon = 'icons/turf/walls/cave.dmi'
+	icon_state = "cave_wall-0-0-0-0"
+	color = "#c9a37b"
+	walltype = "cave_wall"
+	smoothing_behavior = DIAGONAL_SMOOTHING
+	smoothing_groups = SMOOTH_GENERAL_STRUCTURES
 
 /turf/closed/desertdamrockwall/invincible
 	resistance_flags = RESIST_ALL
@@ -158,10 +166,10 @@
 /turf/closed/attackby(obj/item/I, mob/user, params)
 	. = ..()
 
-	if(istype(I, /obj/item/tool/pickaxe/plasmacutter) && !user.action_busy)
+	if(istype(I, /obj/item/tool/pickaxe/plasmacutter) && !user.do_actions)
 		var/obj/item/tool/pickaxe/plasmacutter/P = I
 		if(!ismineralturf(src) && !istype(src, /turf/closed/gm/dense) && !istype(src, /turf/closed/glass) && !istype(src, /turf/closed/desertdamrockwall) && !istype(src, /turf/closed/brock))
-			to_chat(user, "<span class='warning'>[P] can't cut through this!</span>")
+			to_chat(user, span_warning("[P] can't cut through this!"))
 			return
 		if(!P.start_cut(user, name, src))
 			return
@@ -211,10 +219,10 @@
 /turf/closed/attackby(obj/item/I, mob/user, params)
 	. = ..()
 
-	if(istype(I, /obj/item/tool/pickaxe/plasmacutter) && !user.action_busy)
+	if(istype(I, /obj/item/tool/pickaxe/plasmacutter) && !user.do_actions)
 		var/obj/item/tool/pickaxe/plasmacutter/P = I
 		if(!ismineralturf(src) && !istype(src, /turf/closed/gm/dense) && !istype(src, /turf/closed/ice) && !istype(src, /turf/closed/desertdamrockwall) && !istype(src, /turf/closed/brock))
-			to_chat(user, "<span class='warning'>[P] can't cut through this!</span>")
+			to_chat(user, span_warning("[P] can't cut through this!"))
 			return
 		if(!P.start_cut(user, name, src))
 			return
@@ -236,12 +244,6 @@
 				ChangeTurf(/turf/open/lavaland/basalt)
 		else
 			ChangeTurf(/turf/open/floor/plating/ground/ice)
-
-
-//Ice Secret Wall
-/turf/closed/ice/secret
-	icon_state = "ice_wall_0"
-	desc = "There is something inside..."
 
 
 //ROCK WALLS------------------------------//
@@ -308,6 +310,7 @@
 	icon_state = "wall1"
 	icon = 'icons/turf/shuttle.dmi'
 	plane = FLOOR_PLANE
+	smoothing_behavior = NO_SMOOTHING
 
 /turf/closed/shuttle/re_corner/notdense
 	icon_state = "re_cornergrass"
@@ -371,6 +374,15 @@
 /turf/closed/shuttle/dropship1/transparent
 	opacity = FALSE
 
+/turf/closed/shuttle/dropship3
+	name = "\improper Triumph"
+	icon = 'icons/turf/dropship.dmi'
+	icon_state = "1"
+	plane = GAME_PLANE
+
+/turf/closed/shuttle/dropship3/transparent
+	opacity = FALSE
+
 /turf/closed/shuttle/dropship2
 	name = "\improper Normandy"
 	icon = 'icons/turf/dropship2.dmi'
@@ -386,3 +398,13 @@
 	icon = 'icons/turf/escapepods.dmi'
 	icon_state = "wall0"
 	plane = GAME_PLANE
+
+
+/turf/closed/banish_space //Brazil
+	plane = PLANE_SPACE
+	layer = SPACE_LAYER
+	icon = 'icons/turf/space.dmi'
+	name = "phantom zone"
+	icon_state = "0"
+	can_bloody = FALSE
+	light_power = 0.25

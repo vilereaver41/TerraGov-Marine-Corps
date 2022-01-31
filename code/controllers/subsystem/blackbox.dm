@@ -1,7 +1,6 @@
 SUBSYSTEM_DEF(blackbox)
 	name = "Blackbox"
 	wait = 10 MINUTES
-	flags = SS_NO_TICK_CHECK
 	runlevels = RUNLEVEL_GAME|RUNLEVEL_POSTGAME
 
 	var/list/feedback = list()
@@ -93,11 +92,11 @@ SUBSYSTEM_DEF(blackbox)
 	return TRUE
 
 
-#define FEEDBACK_TEXT			"text"
-#define FEEDBACK_AMOUNT			"amount"
-#define FEEDBACK_TALLY			"tally"
-#define FEEDBACK_NESTED_TALLY	"nested_tally"
-#define FEEDBACK_ASSOCIATIVE	"associative"
+#define FEEDBACK_TEXT "text"
+#define FEEDBACK_AMOUNT "amount"
+#define FEEDBACK_TALLY "tally"
+#define FEEDBACK_NESTED_TALLY "nested_tally"
+#define FEEDBACK_ASSOCIATIVE "associative"
 
 /datum/controller/subsystem/blackbox/proc/record_feedback(key_type, key, increment, data, overwrite, version = 1)
 	if(sealed || !key_type || !istext(key) || !isnum(increment || !data))
@@ -190,20 +189,20 @@ SUBSYSTEM_DEF(blackbox)
 	if(!SSdbcore.Connect())
 		return
 
-	var/datum/db_query/query_report_death = SSdbcore.NewQuery({"INSERT INTO [format_table_name("death")]
-		(pod, x_coord, y_coord, z_coord, mapname, server_ip, server_port, round_id, tod, job, special, name, byondkey, laname, lakey, bruteloss, fireloss, brainloss, oxyloss, toxloss, cloneloss, staminaloss, last_words, suicide)
-		VALUES (:pod, :x_coord, :y_coord, :z_coord, :map, INET_ATON(:world.internet_address), :port, :round_id, :time, :job, :sqlspecial, :name, :key, :laname, :lakey, :brute, :fire, :brain, :oxy, :tox, :clone, :stamina, :last_words, :suicide)
+	var/datum/db_query/query_report_death = SSdbcore.NewQuery({"
+		INSERT INTO [format_table_name("death")] (pod, x_coord, y_coord, z_coord, mapname, server_ip, server_port, round_id, tod, job, special, name, byondkey, laname, lakey, bruteloss, fireloss, brainloss, oxyloss, toxloss, cloneloss, staminaloss, last_words, suicide)
+		VALUES (:pod, :x_coord, :y_coord, :z_coord, :map, INET_ATON(:internet_address), :port, :round_id, :time, :job, :special, :name, :key, :laname, :lakey, :brute, :fire, :brain, :oxy, :tox, :clone, :stamina, :last_words, :suicide)
 		"}, list(
 			"name" = L.real_name,
 			"key" = L.ckey,
 			"job" = L.job ? L.job.title : "Unassigned",
 			"special" = "unused",
-			"pod" = get_area_name(L, TRUE),
+			"pod" = get_area_name(L, TRUE) || "",
 			"laname" = L.real_name,
 			"lakey" = L.ckey,
 			"brute" = L.getBruteLoss(),
 			"fire" = L.getFireLoss(),
-			"brain" = -1, //L.GetBrainLoss(), Byond errors that the proc isnt defined and I have no idea why and the person before me either :/
+			"brain" = L.getBrainLoss(),
 			"oxy" = L.getOxyLoss(),
 			"tox" = L.getToxLoss(),
 			"clone" = L.getCloneLoss(),
@@ -214,6 +213,10 @@ SUBSYSTEM_DEF(blackbox)
 			"last_words" = "no last words",
 			"suicide" = L.suiciding,
 			"map" = SSmapping.configs[GROUND_MAP].map_name,
+			"internet_address" = world.internet_address || "0",
+			"port" = "[world.port]",
+			"round_id" = GLOB.round_id,
+			"time" = SQLtime(),
 		)
 	)
 

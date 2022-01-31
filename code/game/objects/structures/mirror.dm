@@ -10,17 +10,17 @@
 	resistance_flags = XENO_DAMAGEABLE
 	var/shattered = FALSE
 
-/obj/structure/mirror/Initialize()
+/obj/structure/mirror/Initialize(mapload)
 	. = ..()
 	switch(dir)
 		if(NORTH)
-			pixel_y = 30
+			pixel_y = -14
 		if(SOUTH)
-			pixel_y = -30
+			pixel_y = 27
 		if(EAST)
-			pixel_x = 30
+			pixel_x = -22
 		if(WEST)
-			pixel_x = -30
+			pixel_x = 22
 
 /obj/structure/mirror/broken
 	icon_state = "mirror_broke"
@@ -51,7 +51,7 @@
 			else
 				species_facial_hair = GLOB.facial_hair_styles_list
 
-			var/new_style = input(user, "Select a facial hair style", "Grooming")  as null|anything in species_facial_hair
+			var/new_style = tgui_input_list(user, "Select a facial hair style", "Grooming", species_facial_hair)
 			if(userloc != H.loc)
 				return	//no tele-grooming
 			if(new_style)
@@ -67,7 +67,7 @@
 		else
 			species_hair = GLOB.hair_styles_list
 
-		var/new_style = input(user, "Select a hair style", "Grooming")  as null|anything in species_hair
+		var/new_style = tgui_input_list(user, "Select a hair style", "Grooming", species_hair)
 		if(userloc != H.loc)
 			return	//no tele-grooming
 		if(new_style)

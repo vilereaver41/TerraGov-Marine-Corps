@@ -9,6 +9,12 @@
 	var/template_width = 0
 	///Bool for whether we want to to be spawning from the middle or to the topright of the spawner (true is centered)
 	var/keepcentered = FALSE
+	//minimum player number for a modular map template to be added to the list of potential modular map spawns.
+	var/min_player_num 
+	//maximum player number for a modular map template to be added to the list of potential modular map spawns.
+	var/max_player_num 
+
+	//FOR MIN AND MAX PLAYER COUNTS TO WORK YOUR MODULAR MAP MUST HAVE BOTH FIELDS, MAPS WITH UNINITIALIZED MIN/MAX VALUES OR WITH JUST ONE OF EITHER VAR WILL ENTER THE MODULAR LIST REGARDLESS OF POP
 
 /datum/map_template/modular/prison
 	mappath = "_maps/modularmaps/prison"
@@ -108,6 +114,20 @@
 /datum/map_template/modular/end_of_round/de_dust2
 	name = "de dust 2"
 	mappath = "_maps/modularmaps/EORG/de_dust2.dmm"
+	modular_id = "EORG"
+	template_width = 46
+	template_height = 46
+
+/datum/map_template/modular/end_of_round/old
+	name = "Old EORG"
+	mappath = "_maps/modularmaps/EORG/old.dmm"
+	modular_id = "EORG"
+	template_width = 46
+	template_height = 46
+
+/datum/map_template/modular/end_of_round/basketball
+	name = "Basketball Arena"
+	mappath = "_maps/modularmaps/EORG/basketball.dmm"
 	modular_id = "EORG"
 	template_width = 46
 	template_height = 46

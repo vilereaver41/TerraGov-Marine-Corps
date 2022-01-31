@@ -28,6 +28,13 @@ SUBSYSTEM_DEF(mapping)
 	var/datum/space_level/transit
 	var/num_of_res_levels = 1
 
+	///If true, non-admin players will not be able to initiate a vote to change groundmap
+	var/groundmap_voted = FALSE
+	///If true, non-admin players will not be able to initiate a vote to change shipmap
+	var/shipmap_voted = FALSE
+	///The number of connected clients for the previous round
+	var/last_round_player_count
+
 //dlete dis once #39770 is resolved
 /datum/controller/subsystem/mapping/proc/HACK_LoadMapConfig()
 	if(!configs)
@@ -47,22 +54,30 @@ SUBSYSTEM_DEF(mapping)
 			var/old_config = configs[i]
 			configs[i] = global.config.defaultmaps[i]
 			if(!configs || configs[i].defaulted)
-				to_chat(world, "<span class='boldannounce'>Unable to load next or default map config, defaulting.</span>")
+				to_chat(world, span_boldannounce("Unable to load next or default map config, defaulting."))
 				configs[i] = old_config
 
 	if(configs[GROUND_MAP])
-		for(var/i in config.votable_modes)
-			if(!(i in configs[GROUND_MAP].gamemodes))
-				config.votable_modes -= i // remove invalid modes
+		for(var/datum/game_mode/M AS in config.votable_modes)
+			if(!(M.config_tag in configs[GROUND_MAP].gamemodes))
+				config.votable_modes -= M // remove invalid modes
 
 	loadWorld()
 	repopulate_sorted_areas()
+	load_last_round_playercount()
 	preloadTemplates()
 	// Add the transit level
 	transit = add_new_zlevel("Transit/Reserved", list(ZTRAIT_RESERVED = TRUE))
 	repopulate_sorted_areas()
 	initialize_reserved_level(transit.z_value)
 	return ..()
+
+//Loads the number of players we had last round, for use in modular mapping
+/datum/controller/subsystem/mapping/proc/load_last_round_playercount()
+	var/json_file = file("data/last_round_player_count.json")
+	if(!fexists(json_file))
+		return
+	last_round_player_count = json_decode(file2text(json_file))
 
 /datum/controller/subsystem/mapping/proc/wipe_reservations(wipe_safety_delay = 100)
 	if(clearing_reserved_turfs || !initialized)			//in either case this is just not needed.
@@ -110,7 +125,7 @@ SUBSYSTEM_DEF(mapping)
 
 	z_list = SSmapping.z_list
 
-#define INIT_ANNOUNCE(X) to_chat(world, "<span class='notice'>[X]</span>"); log_world(X)
+#define INIT_ANNOUNCE(X) to_chat(world, span_notice("[X]")); log_world(X)
 /datum/controller/subsystem/mapping/proc/LoadGroup(list/errorList, name, path, files, list/traits, list/default_traits, silent = FALSE)
 	. = list()
 	var/start_time = REALTIMEOFDAY
@@ -259,8 +274,6 @@ SUBSYSTEM_DEF(mapping)
 
 	for(var/item in subtypesof(/datum/map_template/shuttle))
 		var/datum/map_template/shuttle/shuttle_type = item
-		//if(!(initial(shuttle_type.suffix)))
-		//	continue
 
 		var/datum/map_template/shuttle/S = new shuttle_type()
 		if(unbuyable.Find(S.mappath))
@@ -276,7 +289,10 @@ SUBSYSTEM_DEF(mapping)
 		var/datum/map_template/modular/M = new modular_type()
 
 		LAZYINITLIST(modular_templates[M.modular_id])
-		modular_templates[M.modular_id] += M
+		if(M.min_player_num == null || M.max_player_num == null) //maps without an assigned max or min player count are always added to the modular map list
+			modular_templates[M.modular_id] += M
+		else if (last_round_player_count >= M.min_player_num && last_round_player_count <= M.max_player_num) //if we exceed the minimum or maximum players numbers for a modular map don't add it to our list of valid modules that can be loaded
+			modular_templates[M.modular_id] += M
 		map_templates[M.type] = M
 
 /datum/controller/subsystem/mapping/proc/RequestBlockReservation(width, height, z, type = /datum/turf_reservation, turf_type_override)

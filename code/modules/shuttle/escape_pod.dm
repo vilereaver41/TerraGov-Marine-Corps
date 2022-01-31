@@ -126,10 +126,10 @@
 /obj/machinery/computer/shuttle/escape_pod/escape_shuttle
 	name = "escape shuttle controller"
 
-/obj/machinery/computer/shuttle/escape_pod/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/computer/shuttle/escape_pod/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "EscapePod", "Escape pod", 400, 140, master_ui, state)
+		ui = new(user, src, "EscapePod")
 		ui.open()
 
 /obj/machinery/computer/shuttle/escape_pod/ui_data(mob/user)
@@ -151,10 +151,10 @@
 			return
 
 		if(!M.can_launch)
-			to_chat(usr, "<span class='warning'>Evacuation is not enabled!</span>")
+			to_chat(usr, span_warning("Evacuation is not enabled!"))
 			return
 
-		to_chat(usr, "<span class='highdanger'>You slam your fist down on the launch button!</span>")
+		to_chat(usr, span_highdanger("You slam your fist down on the launch button!"))
 		M.launch(TRUE)
 
 //=========================================================================================
@@ -176,94 +176,9 @@
 		M.cryopods += src
 		linked_to_shuttle = TRUE
 
-/obj/machinery/cryopod/evacuation/ex_act(severity)
-	return
-
-/obj/machinery/cryopod/evacuation/attackby(obj/item/grab/G, mob/user)
-	if(istype(G))
-		if(being_forced)
-			to_chat(user, "<span class='warning'>There's something forcing it open!</span>")
-			return FALSE
-
-		if(occupant)
-			to_chat(user, "<span class='warning'>There is someone in there already!</span>")
-			return FALSE
-
-		var/mob/living/carbon/human/M = G.grabbed_thing
-		if(!istype(M)) return FALSE
-
-		visible_message("<span class='warning'>[user] starts putting [M.name] into the cryo pod.</span>", 3)
-
-		if(do_after(user, 20, TRUE, M, BUSY_ICON_GENERIC) && !QDELETED(src))
-			move_mob_inside(M)
-
-/obj/machinery/cryopod/evacuation/eject()
-	set name = "Eject Pod"
-	set category = "Object"
-	set src in oview(1)
-
-	if(!occupant || !usr.stat || usr.restrained()) return FALSE
-
-	if(occupant) //Once you're in, you cannot exit, and outside forces cannot eject you.
-		//The occupant is actually automatically ejected once the evac is canceled.
-		if(occupant != usr) to_chat(usr, "<span class='warning'>You are unable to eject the occupant unless the evacuation is canceled.</span>")
-
-
-/obj/machinery/cryopod/evacuation/go_out() //When the system ejects the occupant.
-	if(occupant)
-		occupant.forceMove(get_turf(src))
-		REMOVE_TRAIT(occupant, TRAIT_STASIS, CRYOPOD_TRAIT)
-		occupant = null
-		icon_state = orient_right ? "body_scanner_0-r" : "body_scanner_0"
-
-/obj/machinery/cryopod/evacuation/move_inside()
-	set name = "Enter Pod"
-	set category = "Object"
-	set src in oview(1)
-
-	var/mob/living/carbon/human/user = usr
-
-	if(!istype(user) || user.stat || user.restrained()) return FALSE
-
-	if(being_forced)
-		to_chat(user, "<span class='warning'>You can't enter when it's being forced open!</span>")
-		return FALSE
-
-	if(occupant)
-		to_chat(user, "<span class='warning'>The cryogenic pod is already in use! You will need to find another.</span>")
-		return FALSE
-
-	visible_message("<span class='warning'>[user] starts climbing into the cryo pod.</span>", 3)
-
-	if(do_after(user, 20, FALSE, src, BUSY_ICON_GENERIC))
-		user.stop_pulling()
-		move_mob_inside(user)
-
-/obj/machinery/cryopod/evacuation/attack_alien(mob/living/carbon/xenomorph/user)
-	if(being_forced)
-		to_chat(user, "<span class='xenowarning'>It's being forced open already!</span>")
-		return FALSE
-
-	if(!occupant)
-		to_chat(user, "<span class='xenowarning'>There is nothing of interest in there.</span>")
-		return FALSE
-
-	being_forced = !being_forced
-	visible_message("<span class='warning'>[user] begins to pry the [src]'s cover!</span>", 3)
-	playsound(src,'sound/effects/metal_creaking.ogg', 25, 1)
-	if(do_after(user, 20, FALSE, src, BUSY_ICON_HOSTILE))
-		go_out() //Force the occupant out.
-	being_forced = !being_forced
-
-/obj/machinery/cryopod/evacuation/proc/move_mob_inside(mob/M)
-	if(occupant)
-		to_chat(M, "<span class='warning'>The cryogenic pod is already in use. You will need to find another.</span>")
-		return FALSE
-	M.forceMove(src)
-	to_chat(M, "<span class='notice'>You feel cool air surround you as your mind goes blank and the pod locks.</span>")
-	occupant = M
-	ADD_TRAIT(occupant, TRAIT_STASIS, CRYOPOD_TRAIT)
-	icon_state = orient_right ? "body_scanner_1-r" : "body_scanner_1"
+/obj/machinery/cryopod/evacuation/climb_in(mob/living/carbon/user, mob/helper)
+	. = ..()
+	user.ghostize(FALSE)
 
 /obj/machinery/door/airlock/evacuation
 	name = "\improper Evacuation Airlock"
@@ -313,5 +228,5 @@
 /obj/machinery/door/airlock/evacuation/attack_hand(mob/living/user)
 	return TRUE
 
-/obj/machinery/door/airlock/evacuation/attack_alien()
+/obj/machinery/door/airlock/evacuation/attack_alien(mob/living/carbon/xenomorph/X, damage_amount = X.xeno_caste.melee_damage, damage_type = BRUTE, damage_flag = "", effects = TRUE, armor_penetration = 0, isrightclick = FALSE)
 	return FALSE //Probably a better idea that these cannot be forced open.

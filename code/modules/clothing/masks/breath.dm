@@ -4,7 +4,7 @@
 	icon_state = "breath"
 	item_state = "breath"
 	flags_inventory = COVERMOUTH|ALLOWINTERNALS
-	flags_armor_protection = 0
+	flags_armor_protection = NONE
 	w_class = WEIGHT_CLASS_SMALL
 	gas_transfer_coefficient = 0.10
 	permeability_coefficient = 0.50
@@ -52,10 +52,11 @@
 	desc = "A close-fitting device that instantly heats or cools down air when you inhale so it doesn't damage your lungs."
 	icon_state = "rebreather"
 	item_state = "rebreather"
-	w_class = WEIGHT_CLASS_SMALL
-	flags_armor_protection = 0
-	flags_inventory = COVERMOUTH|ALLOWREBREATH
+	flags_armor_protection = NONE
+	flags_inventory = COVERMOUTH|COVEREYES|ALLOWINTERNALS|BLOCKGASEFFECT |ALLOWREBREATH
 	flags_inv_hide = HIDELOWHAIR
+	gas_transfer_coefficient = 0.01
+	permeability_coefficient = 0.01
 
 /obj/item/clothing/mask/rebreather/scarf
 	name = "heat absorbent coif"
@@ -74,11 +75,12 @@
 	desc = "A colored, resilient, and insulating cloth to cover your face from the elements. This one is Desert Tan"
 	icon_state = "bandanna"
 	item_state = "bandanna"
-	w_class = WEIGHT_CLASS_SMALL
 	flags_armor_protection = NONE
-	flags_inventory = COVERMOUTH|ALLOWREBREATH
-	flags_inv_hide = HIDEFACE|HIDELOWHAIR
 	flags_armor_protection = FACE
+	flags_inv_hide = HIDEFACE|HIDELOWHAIR
+	flags_inventory = COVERMOUTH|COVEREYES|ALLOWINTERNALS|BLOCKGASEFFECT |ALLOWREBREATH
+	gas_transfer_coefficient = 0.01
+	permeability_coefficient = 0.01
 
 /obj/item/clothing/mask/bandanna/verb/toggle()
 	set category = "Object"

@@ -1,23 +1,21 @@
-import { useBackend, useLocalState } from '../backend';
-import { Button, Flex, Divider, Collapsible, AnimatedNumber, Box, Section, LabeledList, Icon, Input } from '../components';
-import { Window } from '../layouts';
 import { Fragment } from 'inferno';
+import { useBackend, useLocalState } from '../backend';
+import { Button, Flex, Divider, Collapsible, AnimatedNumber, Box, Section, LabeledList, Icon, Input, Table, Stack } from '../components';
+import { Window } from '../layouts';
 import { map } from 'common/collections';
-import { FlexItem } from '../components/Flex';
-import { Table, TableRow, TableCell } from '../components/Table';
-import { LabeledListItem } from '../components/LabeledList';
 
 const category_icon = {
   'Operations': "parachute-box",
   'Weapons': "fighter-jet",
-  'Attachments': "microchip",
-  'Ammo': "space-shuttle",
+  'Explosives': "bomb",
   'Armor': "hard-hat",
   'Clothing': "tshirt",
   'Medical': "medkit",
   'Engineering': "tools",
   'Supplies': "hamburger",
   'Imports': "boxes",
+  'Vehicles': "road",
+  'Factory': "industry",
   'Pending Order': "shopping-cart",
 };
 
@@ -42,7 +40,9 @@ export const Cargo = (props, context) => {
     : null;
 
   return (
-    <Window resizable>
+    <Window
+      width={900}
+      height={700}>
       <Flex height="650px" align="stretch">
         <Flex.Item width="280px">
           <Menu />
@@ -71,15 +71,13 @@ export const Cargo = (props, context) => {
               <OrderList type={deniedrequests} />
             )}
             {!!selectedPackCat
-              && (<Category selectedPackCat={selectedPackCat} />)}
+              && (<Category selectedPackCat={selectedPackCat} should_filter />)}
           </Window.Content>
         </Flex.Item>
       </Flex>
     </Window>
   );
 };
-
-
 
 const Exports = (props, context) => {
   const { act, data } = useBackend(context);
@@ -90,23 +88,14 @@ const Exports = (props, context) => {
 
   return (
     <Section title="Exports">
-      { export_history.map(entry => (
-        <Section
-          key={entry.id}
-          level={2}
-          title={"#"+entry.id}
-          buttons={entry.points+" points"}>
-          <Table>
-            {entry.exports.map(exp => (
-              <TableRow key={exp.id}>
-                <TableCell>{exp.name}</TableCell>
-                <TableCell>x {exp.count}</TableCell>
-                <TableCell>{exp.points} points</TableCell>
-              </TableRow>
-            ))}
-          </Table>
-        </Section>
-      ))}
+      <Table>
+        {export_history.map(exp => (
+          <Table.Row key={exp.id}>
+            <Table.Cell>{exp.name}</Table.Cell>
+            <Table.Cell>{exp.points} points</Table.Cell>
+          </Table.Row>
+        ))}
+      </Table>
     </Section>
   );
 };
@@ -147,10 +136,10 @@ const Menu = (props, context) => {
     shopping_list_items,
     elevator,
     elevator_dir,
+    export_history,
     deniedrequests,
     approvedrequests,
     awaiting_delivery_orders,
-    export_history,
     shopping_history,
   } = data;
 
@@ -160,53 +149,56 @@ const Menu = (props, context) => {
     <Section height="100%" p="5px">
       Points: <AnimatedNumber value={currentpoints} />
       { !readOnly && (
-        <Fragment>
+        <>
           <Divider />
           <Flex>
-            <FlexItem grow={1}>
+            <Flex.Item grow={1}>
               <MenuButton
                 icon="luggage-cart"
                 menuname="Awaiting Delivery"
                 condition={!awaiting_delivery_orders} />
-            </FlexItem>
-            <FlexItem>
+            </Flex.Item>
+            <Flex.Item>
               <AnimatedNumber value={awaiting_delivery_orders} /> order{
                 awaiting_delivery_orders !== 1 && "s"
               }
-            </FlexItem>
+            </Flex.Item>
           </Flex>
           <Flex>
-            <FlexItem grow={1}>
+            <Flex.Item grow={1}>
               <Button
                 onClick={() => act('send')}
                 disabled={!elev_status}
                 icon={"angle-double-"+elevator_dir}>
                 {elevator_dir==="up"?"Raise":"Lower"}
               </Button>
-            </FlexItem>
-            <FlexItem>
+            </Flex.Item>
+            <Flex.Item>
               Elevator: {elevator}
-            </FlexItem>
+            </Flex.Item>
           </Flex>
-        </Fragment>
+        </>
       )}
       <Divider />
       <Flex>
-        <FlexItem grow={1}>
+        <Flex.Item grow={1}>
           <MenuButton
             icon="shopping-cart"
             menuname="Pending Order"
             condition={!shopping_list_items} />
-        </FlexItem>
-        <FlexItem><AnimatedNumber value={shopping_list_items} /> item{
-          shopping_list_items !== 1 && "s"
-        }
-        </FlexItem>
-        <FlexItem width="5px" />
-        <FlexItem>Cost: <AnimatedNumber value={shopping_list_cost} /></FlexItem>
+        </Flex.Item>
+        <Flex.Item>
+          <AnimatedNumber value={shopping_list_items} /> item{
+            shopping_list_items !== 1 && "s"
+          }
+        </Flex.Item>
+        <Flex.Item width="5px" />
+        <Flex.Item>Cost:
+          <AnimatedNumber value={shopping_list_cost} />
+        </Flex.Item>
       </Flex>
       { !readOnly && (
-        <Fragment>
+        <>
           <MenuButton
             icon="history"
             menuname="Previous Purchases"
@@ -215,17 +207,17 @@ const Menu = (props, context) => {
             icon="shipping-fast"
             menuname="Export History"
             condition={!export_history.length} />
-        </Fragment>
+        </>
       )}
       <Divider />
       <Flex>
-        <FlexItem grow={1}>
+        <Flex.Item grow={1}>
           <MenuButton
             icon="clipboard-list"
             menuname="Requests"
             condition={!requests.length} />
-        </FlexItem>
-        <FlexItem>{requests.length} pending</FlexItem>
+        </Flex.Item>
+        <Flex.Item>{requests.length} pending</Flex.Item>
       </Flex>
       <MenuButton
         icon="clipboard-check"
@@ -283,7 +275,7 @@ const OrderList = (props, context) => {
           <Section key={id} level={2}
             title={"Order #"+id}
             buttons={!readOnly && (
-              <Fragment>
+              <>
                 { (!authed_by || selectedMenu==="Denied Requests") && (
                   <Button
                     onClick={() => act('approve', { id: id })}
@@ -294,21 +286,21 @@ const OrderList = (props, context) => {
                     onClick={() => act('deny', { id: id })}
                     icon="times"
                     content="Deny" />)}
-              </Fragment>
+              </>
             )}>
             <LabeledList>
-              <LabeledListItem label="Requested by">
+              <LabeledList.Item label="Requested by">
                 {rank+" "+orderer}
-              </LabeledListItem>
-              <LabeledListItem label="Reason">
+              </LabeledList.Item>
+              <LabeledList.Item label="Reason">
                 {reason}
-              </LabeledListItem>
-              <LabeledListItem label="Total Cost">
+              </LabeledList.Item>
+              <LabeledList.Item label="Total Cost">
                 {cost} points
-              </LabeledListItem>
-              <LabeledListItem label="Contents">
+              </LabeledList.Item>
+              <LabeledList.Item label="Contents">
                 <Packs packs={packs} />
-              </LabeledListItem>
+              </LabeledList.Item>
             </LabeledList>
           </Section>
         );
@@ -387,7 +379,7 @@ const Requests = (props, context) => {
     <OrderList type={requests}
       readOnly={readOnly}
       buttons={!readOnly && (
-        <Fragment>
+        <>
           <Button
             icon="check-double"
             onClick={() => act('approveall')}
@@ -396,7 +388,7 @@ const Requests = (props, context) => {
             icon="times-circle"
             onClick={() => act('denyall')}
             content="Deny All" />
-        </Fragment>
+        </>
       )} />
   );
 };
@@ -440,13 +432,13 @@ const ShoppingCart = (props, context) => {
           onClick={() => act('clearcart')} />
       </Box>
       { readOnly && (
-        <Fragment>
+        <>
           <Box width="10%" inline>Reason: </Box>
           <Input
             width="89%"
             inline value={reason}
             onInput={(e, value) => setReason(value)} />
-        </Fragment>
+        </>
       )}
       <Category selectedPackCat={shopping_list_array} level={2} />
     </Section>
@@ -491,58 +483,87 @@ const Category = (props, context) => {
 
   const {
     selectedPackCat,
+    should_filter,
     level,
   } = props;
 
+  const [
+    filter,
+    setFilter,
+  ] = useLocalState(context, `pack-name-filter`, null);
+
+  const filterSearch = entry =>
+    should_filter && filter
+      ? supplypackscontents[entry].name
+        ?.toLowerCase()
+        .includes(filter.toLowerCase())
+      : true;
+
   return (
     <Section level={level || 1} title={
-      <Fragment>
+      <>
         <Icon name={category_icon[selectedMenu]} mr="5px" />
         {selectedMenu}
-      </Fragment>
+      </>
     }>
-      <Table>
-        { selectedPackCat.map(entry => {
-          const shop_list = shopping_list[entry] || 0;
-          const count = shop_list ? shop_list.count : 0;
-          const {
-            cost,
-          } = supplypackscontents[entry];
-          return (
-            <TableRow key={entry.id}>
-              <TableCell width="130px">
-                <CategoryButton
-                  icon="fast-backward"
-                  disabled={!count}
-                  id={entry}
-                  mode="removeall" />
-                <CategoryButton
-                  icon="backward"
-                  disabled={!count}
-                  id={entry}
-                  mode="removeone" />
-                <Box width="25px" inline textAlign="center">
-                  { !!count && (
-                    <AnimatedNumber value={count} />
-                  )}
-                </Box>
-                <CategoryButton
-                  icon="forward"
-                  id={entry}
-                  mode="addone" />
-                <CategoryButton
-                  icon="fast-forward"
-                  disabled={cost > spare_points}
-                  id={entry}
-                  mode="addall" />
-              </TableCell>
-              <TableCell>
-                <Pack pack={entry} />
-              </TableCell>
-            </TableRow>
-          );
-        }) }
-      </Table>
+      <Stack vertical>
+        {should_filter && (
+          <Stack.Item>
+            <Flex>
+              <Flex.Item width="60px">
+                Search :      
+              </Flex.Item>
+              <Flex.Item grow={1}>
+                <Input fluid onInput={(_e, value) => setFilter(value)} />
+              </Flex.Item>
+            </Flex>
+          </Stack.Item>
+        )}
+        <Stack.Item>
+          <Table>
+            { selectedPackCat.filter(filterSearch).map(entry => {
+              const shop_list = shopping_list[entry] || 0;
+              const count = shop_list ? shop_list.count : 0;
+              const {
+                cost,
+              } = supplypackscontents[entry];
+              return (
+                <Table.Row key={entry.id}>
+                  <Table.Cell width="130px">
+                    <CategoryButton
+                      icon="fast-backward"
+                      disabled={!count}
+                      id={entry}
+                      mode="removeall" />
+                    <CategoryButton
+                      icon="backward"
+                      disabled={!count}
+                      id={entry}
+                      mode="removeone" />
+                    <Box width="25px" inline textAlign="center">
+                      { !!count && (
+                        <AnimatedNumber value={count} />
+                      )}
+                    </Box>
+                    <CategoryButton
+                      icon="forward"
+                      id={entry}
+                      mode="addone" />
+                    <CategoryButton
+                      icon="fast-forward"
+                      disabled={cost > spare_points}
+                      id={entry}
+                      mode="addall" />
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Pack pack={entry} />
+                  </Table.Cell>
+                </Table.Row>
+              );
+            }) }
+          </Table>
+        </Stack.Item> 
+      </Stack>
     </Section>
   );
 };
@@ -553,26 +574,26 @@ const PackContents = (props, context) => {
   } = props;
 
   return (
-    <Fragment>
-      <TableRow>
-        <TableCell bold>
+    <>
+      <Table.Row>
+        <Table.Cell bold>
           Item Type
-        </TableCell>
-        <TableCell bold>
+        </Table.Cell>
+        <Table.Cell bold>
           Quantity
-        </TableCell>
-      </TableRow>
+        </Table.Cell>
+      </Table.Row>
       {map(contententry => (
-        <TableRow>
-          <TableCell width="70%">
+        <Table.Row>
+          <Table.Cell width="70%">
             {contententry.name}
-          </TableCell>
-          <TableCell>
+          </Table.Cell>
+          <Table.Cell>
             x {contententry.count}
-          </TableCell>
-        </TableRow>
+          </Table.Cell>
+        </Table.Row>
       ))(contains)}
-    </Fragment>
+    </>
   );
 };
 
@@ -597,7 +618,9 @@ export const CargoRequest = (props, context) => {
     : null;
 
   return (
-    <Window resizable>
+    <Window
+      width={900}
+      height={700}>
       <Flex height="650px" align="stretch">
         <Flex.Item width="280px">
           <Menu readOnly={1} />
@@ -620,7 +643,9 @@ export const CargoRequest = (props, context) => {
               <OrderList type={deniedrequests} readOnly={1} />
             )}
             {!!selectedPackCat
-              && (<Category selectedPackCat={selectedPackCat} />)}
+              && (<Category 
+                selectedPackCat={selectedPackCat} 
+                should_filter />)}
           </Window.Content>
         </Flex.Item>
       </Flex>

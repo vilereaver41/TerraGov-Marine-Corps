@@ -31,13 +31,13 @@
 	go_out()
 
 /obj/machinery/bodyscanner/proc/move_inside_wrapper(mob/living/M, mob/user)
-	if (M.stat != CONSCIOUS || !(ishuman(M) || ismonkey(M)))
+	if (M.stat != CONSCIOUS || !ishuman(M))
 		return
 	if (occupant)
-		to_chat(user, "<span class='boldnotice'>The scanner is already occupied!</span>")
+		to_chat(user, span_boldnotice("The scanner is already occupied!"))
 		return
 	if (M.abiotic())
-		to_chat(user, "<span class='boldnotice'>Subject cannot have abiotic items on.</span>")
+		to_chat(user, span_boldnotice("Subject cannot have abiotic items on."))
 		return
 	M.forceMove(src)
 	occupant = M
@@ -70,7 +70,6 @@
 	occupant.forceMove(loc)
 	occupant = null
 	icon_state = "body_scanner_0"
-	return
 
 /obj/machinery/bodyscanner/attack_hand(mob/living/user)
 	. = ..()
@@ -92,14 +91,14 @@
 		return
 
 	else if(occupant)
-		to_chat(user, "<span class='warning'>The scanner is already occupied!</span>")
+		to_chat(user, span_warning("The scanner is already occupied!"))
 		return
 
 	var/obj/item/grab/G = I
 	if(istype(G.grabbed_thing,/obj/structure/closet/bodybag/cryobag))
 		var/obj/structure/closet/bodybag/cryobag/C = G.grabbed_thing
 		if(!C.bodybag_occupant)
-			to_chat(user, "<span class='warning'>The stasis bag is empty!</span>")
+			to_chat(user, span_warning("The stasis bag is empty!"))
 			return
 		M = C.bodybag_occupant
 		C.open()
@@ -111,7 +110,7 @@
 		return
 
 	if(M.abiotic())
-		to_chat(user, "<span class='warning'>Subject cannot have abiotic items on.</span>")
+		to_chat(user, span_warning("Subject cannot have abiotic items on."))
 		return
 
 	M.forceMove(src)
@@ -120,6 +119,18 @@
 	for(var/obj/O in src)
 		O.forceMove(loc)
 
+/obj/machinery/bodyscanner/attack_alien(mob/living/carbon/xenomorph/X, damage_amount, damage_type, damage_flag, effects, armor_penetration, isrightclick)
+	if(!occupant)
+		to_chat(X, span_xenowarning("There is nothing of interest in there."))
+		return
+	if(X.status_flags & INCORPOREAL || X.do_actions)
+		return
+	visible_message(span_warning("[X] begins to pry the [src]'s cover!"), 3)
+	playsound(src,'sound/effects/metal_creaking.ogg', 25, 1)
+	if(!do_after(X, 2 SECONDS))
+		return
+	playsound(loc, 'sound/effects/metal_creaking.ogg', 25, 1)
+	go_out()	
 
 /obj/machinery/bodyscanner/ex_act(severity)
 	switch(severity)
@@ -127,8 +138,6 @@
 			for(var/atom/movable/A as mob|obj in src)
 				A.loc = src.loc
 				ex_act(severity)
-				//Foreach goto(35)
-			//SN src = null
 			qdel(src)
 			return
 		if(EXPLODE_HEAVY)
@@ -136,21 +145,15 @@
 				for(var/atom/movable/A as mob|obj in src)
 					A.loc = src.loc
 					ex_act(severity)
-					//Foreach goto(108)
-				//SN src = null
 				qdel(src)
 				return
 		if(EXPLODE_LIGHT)
-			if (prob(25))
-				for(var/atom/movable/A as mob|obj in src)
-					A.loc = src.loc
-					ex_act(severity)
-					//Foreach goto(181)
-				//SN src = null
-				qdel(src)
+			if(!prob(75))
 				return
-		else
-	return
+			for(var/atom/movable/A as mob|obj in src)
+				A.loc = src.loc
+				ex_act(severity)
+			qdel(src)
 
 /obj/machinery/body_scanconsole/ex_act(severity)
 
@@ -161,7 +164,6 @@
 			if (prob(50))
 				qdel(src)
 
-
 /obj/machinery/body_scanconsole
 	name = "Body Scanner Console"
 	icon = 'icons/obj/machines/cryogenics.dmi'
@@ -171,7 +173,6 @@
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 3
 	var/obj/machinery/bodyscanner/connected
-	var/known_implants = list(/obj/item/implant/neurostim)
 	var/delete
 	var/temphtml
 
@@ -211,7 +212,7 @@
 	var/dat
 	if(connected?.occupant) //Is something connected?
 		var/mob/living/carbon/human/H = connected.occupant
-		dat = med_scan(H, dat, known_implants)
+		dat = med_scan(H, dat, GLOB.known_implants)
 	else
 		dat = "<font color='red'> Error: No Body Scanner connected.</font>"
 
@@ -225,7 +226,7 @@
 	if(!occupant)
 		return
 	if(!hasHUD(user,"medical"))
-		to_chat(user, "<span class='notice'>It contains: [occupant].</span>")
+		to_chat(user, span_notice("It contains: [occupant]."))
 		return
 	var/mob/living/carbon/human/H = occupant
 	for(var/datum/data/record/R in GLOB.datacore.medical) //Again, for consistency with other medical machines/devices

@@ -4,8 +4,6 @@
 	icon_state = "cameras"
 	circuit = /obj/item/circuitboard/computer/security
 	light_color = COLOR_RED
-	ui_x = 870
-	ui_y = 708
 
 	interaction_flags = INTERACT_MACHINE_TGUI
 
@@ -38,10 +36,12 @@
 	cam_screen.del_on_map_removal = FALSE
 	cam_screen.screen_loc = "[map_name]:1,1"
 	cam_plane_masters = list()
-	for(var/plane in subtypesof(/obj/screen/plane_master))
-		var/obj/screen/instance = new plane()
+	for(var/plane in subtypesof(/obj/screen/plane_master) - /obj/screen/plane_master/blackness)
+		var/obj/screen/plane_master/instance = new plane()
 		instance.assigned_map = map_name
 		instance.del_on_map_removal = FALSE
+		if(instance.blend_mode_override)
+			instance.blend_mode = instance.blend_mode_override
 		instance.screen_loc = "[map_name]:CENTER"
 		cam_plane_masters += instance
 	cam_background = new
@@ -59,11 +59,9 @@
 		network -= i
 		network += "[idnum][i]"
 
-/obj/machinery/computer/camera/ui_interact(\
-		mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, \
-		datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
+/obj/machinery/computer/camera/ui_interact(mob/user, datum/tgui/ui)
 	// Update UI
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+	ui = SStgui.try_update_ui(user, src, ui)
 	// Show static if can't use the camera
 	if(!active_camera?.can_use())
 		show_camera_static()
@@ -84,7 +82,7 @@
 			user.client.register_map_obj(plane)
 		user.client.register_map_obj(cam_background)
 		// Open UI
-		ui = new(user, src, ui_key, "CameraConsole", name, ui_x, ui_y, master_ui, state)
+		ui = new(user, src, "CameraConsole", name)
 		ui.open()
 
 /obj/machinery/computer/camera/ui_data()
@@ -110,7 +108,7 @@
 		))
 	return data
 
-/obj/machinery/computer/camera/ui_act(action, params)
+/obj/machinery/computer/camera/ui_act(action, list/params)
 	. = ..()
 	if(.)
 		return
