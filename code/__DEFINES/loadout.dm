@@ -31,6 +31,7 @@
 #define CAT_POU "POUCHES"
 #define CAT_WEB "WEBBING"
 #define CAT_BEL "BELT"
+#define CAT_GLA "GLASSES"
 #define CAT_MAS "MASKS"
 #define CAT_ATT "GUN ATTACHMENTS"
 #define CAT_MOD "JAEGER STORAGE MODULES"
@@ -96,7 +97,6 @@ GLOBAL_LIST_INIT(medic_gear_listed_products, list(
 		/obj/item/storage/pill_bottle/meralyne = list(CAT_MEDSUP, "Meralyne pills", 16, "orange"),
 		/obj/item/storage/pill_bottle/dermaline = list(CAT_MEDSUP, "Dermaline pills", 16, "orange"),
 		/obj/item/storage/pill_bottle/paracetamol = list(CAT_MEDSUP, "Paracetamol pills", 8, "orange"),
-		/obj/item/storage/pill_bottle/tricordrazine = list(CAT_MEDSUP, "Tricordrazine pills", 8, "black"),
 		/obj/item/storage/syringe_case/meralyne = list(CAT_MEDSUP, "syringe Case (120u Meralyne)", 16, "orange"),
 		/obj/item/reagent_containers/hypospray/advanced/meralyne = list(CAT_MEDSUP, "hypospray (60u Meralyne)", 8, "orange"), //half the units of the mera case half the price
 		/obj/item/storage/syringe_case/dermaline = list(CAT_MEDSUP, "syringe Case (120u Dermaline)", 16, "orange"),
@@ -199,6 +199,7 @@ GLOBAL_LIST_INIT(loadout_linked_vendor, list(
 		/obj/machinery/vending/armor_supply,
 		/obj/machinery/vending/marineFood,
 		/obj/machinery/vending/MarineMed,
+		/obj/machinery/vending/medical/shipside,
 		/obj/machinery/vending/cigarette,
 		/obj/machinery/vending/tool,
 	),
@@ -208,6 +209,7 @@ GLOBAL_LIST_INIT(loadout_linked_vendor, list(
 		/obj/machinery/vending/armor_supply/loyalist,
 		/obj/machinery/vending/marineFood,
 		/obj/machinery/vending/MarineMed,
+		/obj/machinery/vending/medical/shipside,
 		/obj/machinery/vending/cigarette,
 		/obj/machinery/vending/tool,
 	),
@@ -217,6 +219,7 @@ GLOBAL_LIST_INIT(loadout_linked_vendor, list(
 		/obj/machinery/vending/armor_supply/rebel,
 		/obj/machinery/vending/marineFood,
 		/obj/machinery/vending/MarineMed/rebel,
+		/obj/machinery/vending/medical/rebel,
 		/obj/machinery/vending/cigarette,
 		/obj/machinery/vending/tool,
 	),
@@ -311,6 +314,8 @@ GLOBAL_LIST_INIT(engineer_clothes_listed_products, list(
 		/obj/effect/essentials_set/basic_engineer = list(CAT_STD, "Standard kit", 0, "white"),
 		/obj/effect/essentials_set/basic_engineermodular = list(CAT_STD, "Essential Jaeger Kit", 0, "white"),
 		/obj/effect/essentials_set/robot = list(CAT_STD, "Essential Combat Robot Kit", 0, "white"),
+		/obj/item/clothing/glasses/welding = list(CAT_GLA, "Welding Goggles", 0, "white"),
+		/obj/item/clothing/glasses/meson = list(CAT_GLA, "Optical Meson Scanner", 0, "white"),
 		/obj/effect/modular_set/skirmisher = list(CAT_AMR, "Light Skirmisher Jaeger kit", 0, "orange"),
 		/obj/effect/modular_set/scout = list(CAT_AMR, "Light Scout Jaeger kit", 0, "orange"),
 		/obj/effect/modular_set/infantry = list(CAT_AMR, "Medium Infantry Jaeger kit", 0, "orange"),
@@ -329,6 +334,7 @@ GLOBAL_LIST_INIT(engineer_clothes_listed_products, list(
 		/obj/item/storage/large_holster/blade/machete/full = list(CAT_BAK, "Machete scabbard", 0, "black"),
 		/obj/item/storage/backpack/marine/engineerpack = list(CAT_BAK, "Welderpack", 0, "black"),
 		/obj/item/storage/backpack/marine/radiopack = list(CAT_BAK, "Radio Pack", 0, "black"),
+		/obj/effect/teleporter_linker = list(CAT_BAK, "Teleporters", 0, "black"),
 		/obj/item/armor_module/storage/uniform/brown_vest = list(CAT_WEB, "Tactical brown vest", 0, "orange"),
 		/obj/item/armor_module/storage/uniform/webbing = list(CAT_WEB, "Tactical webbing", 0, "black"),
 		/obj/item/armor_module/storage/uniform/holster = list(CAT_WEB, "Shoulder handgun holster", 0, "black"),
@@ -394,6 +400,7 @@ GLOBAL_LIST_INIT(medic_clothes_listed_products, list(
 		/obj/item/armor_module/storage/uniform/holster = list(CAT_WEB, "Shoulder handgun holster", 0, "black"),
 		/obj/item/storage/belt/medicLifesaver = list(CAT_BEL, "Lifesaver medic belt", 0, "orange"),
 		/obj/item/storage/belt/medical = list(CAT_BEL, "Medical belt", 0, "black"),
+		/obj/item/storage/belt/hypospraybelt = list(CAT_BEL, "hypospray belt", 0, "black"),
 		/obj/item/armor_module/module/welding = list(CAT_HEL, "Jaeger welding module", 0, "orange"),
 		/obj/item/armor_module/module/binoculars =  list(CAT_HEL, "Jaeger binoculars module", 0, "orange"),
 		/obj/item/armor_module/module/antenna = list(CAT_HEL, "Jaeger Antenna module", 0, "orange"),
@@ -566,6 +573,8 @@ GLOBAL_LIST_INIT(synthetic_clothes_listed_products, list(
 		/obj/item/clothing/under/sl_suit = list(CAT_STD, "Amish Suit", 0, "black"),
 		/obj/item/clothing/under/kilt = list(CAT_STD, "Kilt", 0, "black"),
 		/obj/item/clothing/under/waiter = list(CAT_STD, "Waiter's uniform", 0, "black"),
+		/obj/item/clothing/glasses/hud/health = list(CAT_GLA, "HealthMate HUD", 0, "white"),
+		/obj/item/clothing/glasses/meson = list(CAT_GLA, "Optical Meson Scanner", 0, "white"),
 		/obj/item/clothing/suit/storage/hazardvest = list(CAT_AMR, "Hazard vest", 0, "black"),
 		/obj/item/clothing/suit/surgical = list(CAT_AMR, "Surgical apron", 0, "black"),
 		/obj/item/clothing/suit/storage/labcoat = list(CAT_AMR, "Labcoat", 0, "black"),
@@ -670,7 +679,6 @@ GLOBAL_LIST_INIT(loadout_role_essential_set, list(
 	SQUAD_ENGINEER = list (
 		/obj/item/explosive/plastique = 1,
 		/obj/item/explosive/grenade/chem_grenade/razorburn_smol = 1,
-		/obj/item/clothing/glasses/welding = 1,
 		/obj/item/clothing/gloves/marine/insulated = 1,
 		/obj/item/cell/high = 1,
 		/obj/item/tool/shovel/etool = 1,
